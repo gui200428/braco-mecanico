@@ -1,13 +1,32 @@
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
+const { SerialPort } = require('serialport');  // Importa SerialPort corretamente
+const { ReadlineParser } = require('@serialport/parser-readline');  // Importa ReadlineParser
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server);
+const io = socketIo(server, {
+    reconnection: true,
+    reconnectionAttempts: Infinity,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
+    timeout: 20000, // 20 segundos
+    pingTimeout: 60000 // 60 segundos
+});
+
+// Configura a porta serial para comunicação com o Arduino
+const port = new SerialPort({ path: 'COM3', baudRate: 9600 });  // Substitua 'COM3' pelo caminho correto da sua porta
+const parser = port.pipe(new ReadlineParser({ delimiter: '\n' }));  // Cria o parser para leitura
 
 // Frontend
 app.use(express.static('public'));
+
+// Função para mapear o valor de beta para a faixa de 0 a 180 graus
+function mapbetaToServo(beta) {
+    // Mapeia -90 (direita) a 90 (esquerda) para 0 a 180 graus
+    return Math.round((beta + 90) * (180 / 180));
+}
 
 // Socket.io
 io.on('connection', (socket) => {
@@ -15,11 +34,18 @@ io.on('connection', (socket) => {
 
     // Receber os dados de orientação do dispositivo
     socket.on('orientationData', (data) => {
-        console.log(data);
+        const beta = data.beta;
+        const servoPosition = mapbetaToServo(beta);
+
+        console.log(`beta: ${beta}, Servo Position: ${servoPosition}`);
+
+        // Envia o valor mapeado para o Arduino
+        port.write(`${servoPosition}\n`);
     });
 
     socket.on('disconnect', () => {
         console.log('Dispositivo desconectado!');
+        socket.removeAllListeners(); 
     });
 
     // Manter a conexão ativa com ping-pong
@@ -28,7 +54,7 @@ io.on('connection', (socket) => {
     });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
