@@ -43,7 +43,7 @@
     <script>
         const socket = io();
 
-        // variaveis do acelerometro
+        // Variáveis do acelerômetro
         let alpha = 0;
         let beta = 0;
         let gamma = 0;
@@ -51,7 +51,7 @@
         // Toggles
         let toggleState = false; // Estado inicial do toggle, false significa enviar alpha, beta, gamma
         let toggleStateL1 = false; // True significa não enviar crossleft e crossright
-        let toggleStateX = false; // True significa ajustar a altura, subir base
+        let toggleStateB = false;  // True significa B está ativo, desabilitar crossleft e crossright
 
         // Botões do controle
         const l1Button = document.getElementById('L1');
@@ -93,13 +93,6 @@
             }
         }
 
-        // Função para enviar dados do direcional
-        function sendCrossData(direction) {
-            if (toggleState) {
-                if (toggleStateL1 && (direction === 'crossLeft' || direction === 'crossRight')) return;
-                socket.emit('crossData', { direction });
-            }
-        }
 
 
         // Eventos para alternar estados
@@ -110,8 +103,8 @@
 
         l1Button.addEventListener('click', () => {
             toggleStateL1 = !toggleStateL1;
-            crossLeft.classList.toggle('disabled', toggleStateL1);
-            crossRight.classList.toggle('disabled', toggleStateL1);
+            crossLeft.classList.toggle('disabled', toggleStateL1 || toggleStateB);
+            crossRight.classList.toggle('disabled', toggleStateL1 || toggleStateB);
         });
 
         // Função para enviar os dados do botão L1
@@ -120,6 +113,36 @@
                 socket.emit('buttonData', { button: 'L1' });
             }
         });
+
+        // Evento de clique para o botão B (toggle)
+        bButton.addEventListener('click', () => {
+            toggleStateB = !toggleStateB;
+            bButton.style.backgroundColor = toggleStateB ? 'green' : '#484848';
+            crossLeft.classList.toggle('disabled', toggleStateB);
+            crossRight.classList.toggle('disabled', toggleStateB);
+        });
+
+        // Controle cruz
+
+
+        // Função para enviar dados do direcional
+        function sendCrossData(direction) {
+            if (toggleState) { // Verifica se o toggleState está ativo
+                if (toggleStateL1 && (direction === 'crossLeft' || direction === 'crossRight')) {
+                    return; // Não envia se for crossLeft ou crossRight e toggleStateL1 for true
+                }
+                if (toggleStateB && (direction === 'crossLeft' || direction === 'crossRight')) {
+                    return; // Não envia se for crossLeft ou crossRight e toggleStateB for true
+                }
+                if (toggleStateB && (direction === 'crossUp' || direction === 'crossDown')) {
+                    const action = direction === 'crossUp' ? 'UpArt3' : 'DownArt3';
+                    socket.emit('crossData', { direction: action });
+                }
+                else {
+                    socket.emit('crossData', { direction: direction });
+                }
+            }
+        }
 
         // Eventos de clique para botões de direção
         const crossSides = document.querySelectorAll('.crossCenter > div');
@@ -152,7 +175,12 @@
 
         // Função para enviar os botões X, Y, B, A para o servidor
         function sendButtonData(button) {
-            socket.emit('buttonData', { button });
+            if (button === 'b') {
+                return;
+            }
+            else {
+                socket.emit('buttonData', { button });
+            }
         }
 
         // Eventos de clique para botões X, Y, B, A
@@ -166,7 +194,6 @@
                 button.classList.remove(`${button.classList[0]}-clicked`);
             });
         });
-
 
     </script>
 </body>

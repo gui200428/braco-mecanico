@@ -4,7 +4,17 @@
 // Instancia o driver do PWM
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 
+// Portas do pwm 
+#define base 0
+#define art1Esq 2
+#define art1Dir 4
+#define art2 6
+#define art3 8
+#define pulso 10
+#define garra 12
+
 // Define as constantes para o controle dos servos
+// TODO: resolver os problemas com os servos da articulação 1
 #define SERVOMIN  100  // Valor mínimo para o pulso
 #define SERVOMAX  500  // Valor máximo para o pulso
 
@@ -12,8 +22,14 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 #define ANGLE_A1  120
 #define ANGLE_A2  170
 
-// Variável para armazenar o estado atual do servo
-bool servoState = false;  // False: ANGLE_A1, True: ANGLE_A2
+// Variaveis de estado
+// Variável para armazenar o estado atual da garra
+bool garraState = false;  // False: ANGLE_A1, True: ANGLE_A2
+// Variável para armazenar o estado atual da articulação 3
+int art3AnguloInicial = 90;
+// Controle de graus de movimento das articulações
+int moveStep = 10;
+
 
 void setup() {
   pwm.begin();                    // Inicia o objeto PWM
@@ -23,19 +39,45 @@ void setup() {
 }
 
 void loop() {
+  // Verifica se há dados disponíveis na porta serial
   if (Serial.available() > 0) {
     String command = Serial.readStringUntil('\n');  // Lê o comando da porta serial
+    command.trim();  // Remove espaços em branco no início e no final da string
 
-    // Verifica se o comando recebido é "A"
-    if (command.trim() == "BUTTON_A") {
+    // Controle Up e Down - Articulação 3
+    if (command == "UpArt3"){
+      if (art3AnguloInicial + moveStep <= 170){
+        art3AnguloInicial += moveStep;
+        int pulselength = map(art3AnguloInicial, 0, 180, SERVOMIN, SERVOMAX);
+        pwm.setPWM(art3, 0, pulselength);
+        Serial.print("Movendo art3 para: ");
+        Serial.print(art3AnguloInicial);
+        Serial.println(" graus");
+        delay(10);
+      }
+    }
+    if (command == "DownArt3"){
+      if (art3AnguloInicial - moveStep >= 0){
+        art3AnguloInicial -= moveStep;
+        int pulselength = map(art3AnguloInicial, 0, 180, SERVOMIN, SERVOMAX);
+        pwm.setPWM(art3, 0, pulselength);
+        Serial.print("Movendo art3 para: ");
+        Serial.print(art3AnguloInicial);
+        Serial.println(" graus");
+        delay(10);
+      }
+    }
+
+    // Controle A - Abrir e fechar a garra
+    if (command == "BUTTON_A") {
       // Alterna o estado do servo
-      servoState = !servoState;
+      garraState = !garraState;
 
       // Define o ângulo com base no estado atual
-      int angulo = servoState ? ANGLE_A2 : ANGLE_A1;
-      int pulselength = map(angulo, 0, 180, SERVOMIN, SERVOMAX);  // Mapeia o ângulo para o pulso
+      int angulo = garraState ? ANGLE_A2 : ANGLE_A1;
+      int pulselength = map(angulo, 0, 180, SERVOMIN, SERVOMAX);
 
-      // Abre / fecha a garra
+      // Move o servo conectado à porta 0 do PCA9685
       pwm.setPWM(12, 0, pulselength);
 
       Serial.print("Movendo para: ");
