@@ -16,7 +16,7 @@ const io = socketIo(server, {
 });
 
 // Configura a porta serial para comunicação com o Arduino
-const port = new SerialPort({ path: 'COM3', baudRate: 9600 });  // Substitua 'COM3' pelo caminho correto da sua porta
+const port = new SerialPort({ path: 'COM4', baudRate: 9600 });  // Substitua 'COM3' pelo caminho correto da sua porta
 const parser = port.pipe(new ReadlineParser({ delimiter: '\n' }));  // Cria o parser para leitura
 
 // Frontend
@@ -43,9 +43,29 @@ io.on('connection', (socket) => {
         port.write(`${servoPosition}\n`);
     });
 
+    // Receber os dados do direcional
+    socket.on('crossData', (data) => {
+        const direction = data.direction;
+
+        console.log(`Direção recebida: ${direction}`);
+
+        // Envia a direção recebida para o Arduino
+        port.write(`${direction}\n`);
+    });
+
+    // Receber os dados dos botões X, Y, B, A
+    socket.on('buttonData', (data) => {
+        const button = data.button.toUpperCase();
+
+        console.log(`Botão recebido: ${button}`);
+
+        // Envia o botão recebido para o Arduino
+        port.write(`BUTTON_${button}\n`);
+    });
+
     socket.on('disconnect', () => {
         console.log('Dispositivo desconectado!');
-        socket.removeAllListeners(); 
+        socket.removeAllListeners();
     });
 
     // Manter a conexão ativa com ping-pong

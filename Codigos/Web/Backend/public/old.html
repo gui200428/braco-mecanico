@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle</title>
+</head>
+<body>
+    <h1>Controle</h1>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        let alpha = 0;
+        let beta = 0;
+        let gamma = 0;
+
+        // Verifica se o dispositivo suporta o DeviceOrientationEvent
+        if (window.DeviceOrientationEvent) {
+            window.addEventListener('deviceorientation', (event) => {
+                // Captura os valores de orientação e arredonda para o valor inteiro mais próximo
+                const orientationData = {
+                    alpha: Math.round(event.alpha),  // Rotação ao redor do eixo Z
+                    beta: Math.round(event.beta),    // Inclinação Frente/Trás (x)
+                    gamma: Math.round(event.gamma)   // Inclinação Esquerda/Direita (y)
+                };
+
+                // Enviar os dados de orientação somente se o valor for diferente do anterior
+                if (orientationData.alpha !== alpha || orientationData.beta !== beta || orientationData.gamma !== gamma) {
+                    socket.emit('orientationData', orientationData);
+                    alpha = orientationData.alpha;
+                    beta = orientationData.beta;
+                    gamma = orientationData.gamma;
+                }
+            });
+
+            // Ping a cada 30 segundos para manter a conexão ativa
+            setInterval(() => {
+                socket.emit('ping');
+            }, 30000);
+
+        } else {
+            alert("DeviceOrientationEvent não é suportado no seu dispositivo.");
+        }
+    </script>
+</body>
+</html>

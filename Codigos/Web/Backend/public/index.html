@@ -1,47 +1,174 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./style.css">
     <title>Controle</title>
 </head>
+
 <body>
-    <h1>Controle</h1>
+    <h1 style="display: flex; align-items: center; justify-content: center; padding: 20px;">CONTROLE</h1>
+
+    <div class="controller">
+        <div class="left">
+            <div class="triggers">
+                <div class="triggerL2" id="L2">L2</div>
+                <div class="triggerL1" id="L1">L1</div>
+            </div>
+            <div class="crossCenter">
+                <div class="crossUp" id="crossUp"></div>
+                <div class="crossDown" id="crossDown"></div>
+                <div class="crossLeft" id="crossLeft"></div>
+                <div class="crossRight" id="crossRight"></div>
+                <div class="crossCircle"></div>
+            </div>
+        </div>
+        <div class="right">
+            <div class="triggers">
+                <div class="triggerR2">R2</div>
+                <div class="triggerR1">R1</div>
+            </div>
+            <div class="ButtonsCenter">
+                <div class="x">X</div>
+                <div class="b">B</div>
+                <div class="y">Y</div>
+                <div class="a">A</div>
+            </div>
+        </div>
+    </div>
+
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
 
+        // variaveis do acelerometro
         let alpha = 0;
         let beta = 0;
         let gamma = 0;
 
-        // Verifica se o dispositivo suporta o DeviceOrientationEvent
+        // Toggles
+        let toggleState = false; // Estado inicial do toggle, false significa enviar alpha, beta, gamma
+        let toggleStateL1 = false; // True significa não enviar crossleft e crossright
+        let toggleStateX = false; // True significa ajustar a altura, subir base
+
+        // Botões do controle
+        const l1Button = document.getElementById('L1');
+        const l2Button = document.getElementById('L2');
+        const r1Button = document.getElementById('R1');
+        const r2Button = document.getElementById('R2');
+        const crossUp = document.getElementById('crossUp');
+        const crossDown = document.getElementById('crossDown');
+        const crossLeft = document.getElementById('crossLeft');
+        const crossRight = document.getElementById('crossRight');
+        const xButton = document.querySelector('.x');
+        const yButton = document.querySelector('.y');
+        const bButton = document.querySelector('.b');
+        const aButton = document.querySelector('.a');
+
+        // Verificação de suporte ao DeviceOrientationEvent
         if (window.DeviceOrientationEvent) {
-            window.addEventListener('deviceorientation', (event) => {
-                // Captura os valores de orientação e arredonda para o valor inteiro mais próximo
+            window.addEventListener('deviceorientation', handleOrientationEvent);
+            setInterval(() => socket.emit('ping'), 30000);
+        } else {
+            alert("DeviceOrientationEvent não é suportado no seu dispositivo.");
+        }
+
+        // Função para tratar eventos de orientação
+        function handleOrientationEvent(event) {
+            if (!toggleState) {
                 const orientationData = {
-                    alpha: Math.round(event.alpha),  // Rotação ao redor do eixo Z
-                    beta: Math.round(event.beta),    // Inclinação Frente/Trás (x)
-                    gamma: Math.round(event.gamma)   // Inclinação Esquerda/Direita (y)
+                    alpha: Math.round(event.alpha),
+                    beta: Math.round(event.beta),
+                    gamma: Math.round(event.gamma)
                 };
 
-                // Enviar os dados de orientação somente se o valor for diferente do anterior
                 if (orientationData.alpha !== alpha || orientationData.beta !== beta || orientationData.gamma !== gamma) {
                     socket.emit('orientationData', orientationData);
                     alpha = orientationData.alpha;
                     beta = orientationData.beta;
                     gamma = orientationData.gamma;
                 }
+            }
+        }
+
+        // Função para enviar dados do direcional
+        function sendCrossData(direction) {
+            if (toggleState) {
+                if (toggleStateL1 && (direction === 'crossLeft' || direction === 'crossRight')) return;
+                socket.emit('crossData', { direction });
+            }
+        }
+
+
+        // Eventos para alternar estados
+        l2Button.addEventListener('click', () => {
+            toggleState = !toggleState;
+            l2Button.style.backgroundColor = toggleState ? 'red' : '#484848';
+        });
+
+        l1Button.addEventListener('click', () => {
+            toggleStateL1 = !toggleStateL1;
+            crossLeft.classList.toggle('disabled', toggleStateL1);
+            crossRight.classList.toggle('disabled', toggleStateL1);
+        });
+
+        // Função para enviar os dados do botão L1
+        l1Button.addEventListener('mousedown', function () {
+            if (toggleState) {
+                socket.emit('buttonData', { button: 'L1' });
+            }
+        });
+
+        // Eventos de clique para botões de direção
+        const crossSides = document.querySelectorAll('.crossCenter > div');
+        crossSides.forEach(side => {
+            side.addEventListener('mousedown', function () {
+                if (toggleState) {
+                    sendCrossData(this.id);
+                    crossSides.forEach(el => el.classList.remove('cross-clicked'));
+                    this.classList.add('cross-clicked');
+                }
             });
 
-            // Ping a cada 30 segundos para manter a conexão ativa
-            setInterval(() => {
-                socket.emit('ping');
-            }, 30000);
+            side.addEventListener('mouseup', function () {
+                this.classList.remove('cross-clicked');
+            });
+        });
 
-        } else {
-            alert("DeviceOrientationEvent não é suportado no seu dispositivo.");
+        // Eventos de clique para botões triggers
+        const buttonSides = document.querySelectorAll('.triggers > div');
+        buttonSides.forEach(button => {
+            button.addEventListener('mousedown', function () {
+                buttonSides.forEach(el => el.classList.remove('button-clicked'));
+                this.classList.add('button-clicked');
+            });
+
+            button.addEventListener('mouseup', function () {
+                this.classList.remove('button-clicked');
+            });
+        });
+
+        // Função para enviar os botões X, Y, B, A para o servidor
+        function sendButtonData(button) {
+            socket.emit('buttonData', { button });
         }
+
+        // Eventos de clique para botões X, Y, B, A
+        [xButton, yButton, bButton, aButton].forEach(button => {
+            button.addEventListener('mousedown', function () {
+                button.classList.add(`${button.classList[0]}-clicked`);
+                sendButtonData(button.classList[0]);
+            });
+
+            button.addEventListener('mouseup', function () {
+                button.classList.remove(`${button.classList[0]}-clicked`);
+            });
+        });
+
+
     </script>
 </body>
+
 </html>
