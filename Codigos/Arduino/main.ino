@@ -36,7 +36,7 @@ int moveStepBase = 30;
 // Variável para armazenar o estado atual do pulso
 int pulsoInicial = 90;
 // Variável para armazenar o estado atual da articulação 2
-int art2AnguloInicial = 0;
+int art2AnguloInicial = 10;
 // Variável para armazenar o estado atual da articulação 1
 int art1AnguloInicial = 80;
 // Variavel para armazenar o estado atual da base
@@ -87,13 +87,13 @@ void loop()
       Serial.println(" graus");
 
       // Retorna a articulação 2 para a posição inicial
-      for (int angle = art2AnguloInicial; angle >= 0; angle--)
+      for (int angle = art2AnguloInicial; angle >= 10; angle--)
       {
         int pulselength = map(angle, 0, 180, SERVOMIN, SERVOMAX);
         pwm.setPWM(art2, 0, pulselength);
         delay(25); // Ajusta o delay para controlar a velocidade (maior delay = mais lento)
       }
-      art2AnguloInicial = 0; // Atualiza a posição inicial
+      art2AnguloInicial = 10; // Atualiza a posição inicial
       Serial.print("Movendo art2 para: ");
       Serial.print(art2AnguloInicial);
       Serial.println(" graus");
@@ -184,7 +184,7 @@ void loop()
         {
           int pulselength = map(angle, 0, 180, SERVOMIN, SERVOMAX);
           pwm.setPWM(0, 0, pulselength);
-          delay(15); // Ajusta o delay para controlar a velocidade (maior delay = mais lento)
+          delay(25); // Ajusta o delay para controlar a velocidade (maior delay = mais lento)
         }
         baseInicial = targetAngle; // Atualiza a posição inicial
         Serial.print("Movendo base para: ");
@@ -202,7 +202,7 @@ void loop()
         {
           int pulselength = map(angle, 0, 180, SERVOMIN, SERVOMAX);
           pwm.setPWM(0, 0, pulselength);
-          delay(15); // Ajusta o delay para controlar a velocidade (maior delay = mais lento)
+          delay(25); // Ajusta o delay para controlar a velocidade (maior delay = mais lento)
         }
         baseInicial = targetAngle; // Atualiza a posição inicial
         Serial.print("Movendo base para: ");
@@ -212,7 +212,7 @@ void loop()
     }
 
     // Controle Up e Down - Articulação 1
-    if (command == "DownArt1")
+    if (command == "UpArt1")
     {
       if (art1AnguloInicial + moveStepArt1 <= 180)
       {                                                     // Verifica se não ultrapassa 180 graus
@@ -222,7 +222,7 @@ void loop()
           int pulselength = map(angle, 0, 180, 205, 409);
           pwm.setPWM(art1Esq, 0, pulselength);
           pwm.setPWM(art1Dir, 0, pulselength);
-          delay(15); // Ajusta o delay para controlar a velocidade (maior delay = mais lento)
+          delay(25); // Ajusta o delay para controlar a velocidade (maior delay = mais lento)
         }
         art1AnguloInicial = targetAngle; // Atualiza a posição inicial
         Serial.print("Movendo art1 para: ");
@@ -231,7 +231,7 @@ void loop()
       }
     }
 
-    if (command == "UpArt1")
+    if (command == "DownArt1")
     {
       if (art1AnguloInicial - moveStepArt1 >= 0)
       {                                                     // Verifica se não ultrapassa 0 graus
@@ -241,7 +241,7 @@ void loop()
           int pulselength = map(angle, 0, 180, 205, 409);
           pwm.setPWM(art1Esq, 0, pulselength);
           pwm.setPWM(art1Dir, 0, pulselength);
-          delay(15); // Ajusta o delay para controlar a velocidade (maior delay = mais lento)
+          delay(25); // Ajusta o delay para controlar a velocidade (maior delay = mais lento)
         }
         art1AnguloInicial = targetAngle; // Atualiza a posição inicial
         Serial.print("Movendo art1 para: ");
@@ -251,31 +251,39 @@ void loop()
     }
 
     // Controle Up e Down - Articulação 2
-    if (command == "DownArt2")
+    if (command == "UpArt2")
     {
       if (art2AnguloInicial + moveStepArt2 <= 180)
-      {
-        art2AnguloInicial += moveStepArt2;
-        int pulselength = map(art2AnguloInicial, 0, 180, SERVOMIN, SERVOMAX);
-        pwm.setPWM(art2, 0, pulselength);
+      {                                                     // Verifica se não ultrapassa 180 graus
+        int targetAngle = art2AnguloInicial + moveStepArt2; // Define o ângulo alvo
+        for (int angle = art2AnguloInicial; angle <= targetAngle; angle++)
+        {
+          int pulselength = map(angle, 0, 180, SERVOMIN, SERVOMAX);
+          pwm.setPWM(art2, 0, pulselength);
+          delay(25); // Ajusta o delay para controlar a velocidade (maior delay = mais lento)
+        }
+        art2AnguloInicial = targetAngle; // Atualiza a posição inicial
         Serial.print("Movendo art2 para: ");
         Serial.print(art2AnguloInicial);
         Serial.println(" graus");
-        delay(10);
       }
     }
 
-    if (command == "UpArt2")
+    if (command == "DownArt2")
     {
       if (art2AnguloInicial - moveStepArt2 >= 0)
-      {
-        art2AnguloInicial -= moveStepArt2;
-        int pulselength = map(art2AnguloInicial, 0, 180, SERVOMIN, SERVOMAX);
-        pwm.setPWM(art2, 0, pulselength);
+      {                                                     // Verifica se não ultrapassa 0 graus
+        int targetAngle = art2AnguloInicial - moveStepArt2; // Define o ângulo alvo
+        for (int angle = art2AnguloInicial; angle >= targetAngle; angle--)
+        {
+          int pulselength = map(angle, 0, 180, SERVOMIN, SERVOMAX);
+          pwm.setPWM(art2, 0, pulselength);
+          delay(25); // Ajusta o delay para controlar a velocidade (maior delay = mais lento)
+        }
+        art2AnguloInicial = targetAngle; // Atualiza a posição inicial
         Serial.print("Movendo art2 para: ");
         Serial.print(art2AnguloInicial);
         Serial.println(" graus");
-        delay(10);
       }
     }
 

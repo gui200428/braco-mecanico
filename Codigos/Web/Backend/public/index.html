@@ -23,11 +23,10 @@
                 <div class="crossDown" id="crossDown"></div>
                 <div class="crossLeft" id="crossLeft"></div>
                 <div class="crossRight" id="crossRight"></div>
-                <div class="crossCircle"></div>
             </div>
         </div>
         <div class="center">
-            <p class="command-text" id="commandText">Comando atual</p>
+            <p class="command-text" id="commandText">Comando atual: Base (Rotação)</p>
             <div class="home-button"><svg xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 576 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc. -->
                     <path
@@ -42,13 +41,13 @@
             </div>
             <div class="ButtonsCenter">
                 <div class="button-row">
-                    <div class="x">X</div>
-                    <div class="g">G</div>
-                    <div class="b">B</div>
+                    <div class="x">A1</div>
+                    <div class="g">A2</div>
+                    <div class="b">A3</div>
                 </div>
                 <div class="button-row">
-                    <div class="a">A</div>
-                    <div class="y">Y</div>
+                    <div class="a">P</div>
+                    <div class="y">G</div>
                 </div>
             </div>
         </div>
@@ -64,7 +63,7 @@
         let gamma = 0;
 
         // Toggles
-        let toggleStateL2 = false; // Estado inicial do toggle, false significa enviar alpha, beta, gamma
+        let toggleStateL2 = true; // Estado inicial do toggle, false significa enviar alpha, beta, gamma
         let toggleStateL1 = false; // True significa não enviar crossleft e crossright
         let toggleStateB = false;  // True significa B está ativo, desabilitar crossleft e crossright
         let toggleStateY = false;  // True significa Y está ativo, desabilitar crossup e crossdown
@@ -97,7 +96,7 @@
             window.addEventListener('deviceorientation', handleOrientationEvent);
             setInterval(() => socket.emit('ping'), 30000);
         } else {
-            alert("DeviceOrientationEvent não é suportado no seu dispositivo.");
+            console.log("DeviceOrientationEvent não é suportado no seu dispositivo.");
         }
 
         // Função para tratar eventos de orientação
@@ -121,25 +120,25 @@
 
 
         // Eventos para alternar estados
-        l2Button.addEventListener('click', () => {
-            toggleStateL2 = !toggleStateL2;
-            l2Button.style.backgroundColor = toggleStateL2 ? 'red' : '#484848';
-            // Mandar comando atual para commandText
-            commandText.innerText = toggleStateL2 ? 'Comando atual: Base (Rotação)' : 'Comando atual';
-        });
+        //l2Button.addEventListener('click', () => {
+        //    toggleStateL2 = !toggleStateL2;
+        //    l2Button.style.backgroundColor = toggleStateL2 ? 'red' : '#484848';
+        //    // Mandar comando atual para commandText
+        //    commandText.innerText = toggleStateL2 ? 'Comando atual: Base (Rotação)' : 'Comando atual';
+        //});
 
-        l1Button.addEventListener('click', () => {
-            toggleStateL1 = !toggleStateL1;
-            crossLeft.classList.toggle('disabled', toggleStateL1 || toggleStateB);
-            crossRight.classList.toggle('disabled', toggleStateL1 || toggleStateB);
-        });
+        //l1Button.addEventListener('click', () => {
+        //    toggleStateL1 = !toggleStateL1;
+        //    crossLeft.classList.toggle('disabled', toggleStateL1 || toggleStateB);
+        //    crossRight.classList.toggle('disabled', toggleStateL1 || toggleStateB);
+        //});
 
         // Função para enviar os dados do botão L1
-        l1Button.addEventListener('mousedown', function () {
-            if (toggleStateL2) {
-                socket.emit('buttonData', { button: 'L1' });
-            }
-        });
+        //l1Button.addEventListener('mousedown', function () {
+        //    if (toggleStateL2) {
+        //        socket.emit('buttonData', { button: 'L1' });
+        //    }
+        //});
 
         // Evento de clique para o botão B (toggle)
         bButton.addEventListener('click', () => {
@@ -148,7 +147,7 @@
             crossLeft.classList.toggle('disabled', toggleStateB);
             crossRight.classList.toggle('disabled', toggleStateB);
             // Mandar comando atual para commandText
-            commandText.innerText = toggleStateB ? 'Comando atual: Articulação 3' : 'Comando atual';
+            commandText.innerText = toggleStateB ? 'Comando atual: Articulação 3' : 'Comando atual: Base (Rotação)';
         });
 
         gButton.addEventListener('click', () => {
@@ -157,7 +156,7 @@
             crossLeft.classList.toggle('disabled', toggleStateG);
             crossRight.classList.toggle('disabled', toggleStateG);
             // Mandar comando atual para commandText
-            commandText.innerText = toggleStateG ? 'Comando atual: Articulação 2' : 'Comando atual';
+            commandText.innerText = toggleStateG ? 'Comando atual: Articulação 2' : 'Comando atual: Base (Rotação)';
         });
 
         xButton.addEventListener('click', () => {
@@ -166,7 +165,7 @@
             crossLeft.classList.toggle('disabled', toggleStateX);
             crossRight.classList.toggle('disabled', toggleStateX);
             // Mandar comando atual para commandText
-            commandText.innerText = toggleStateX ? 'Comando atual: Articulação 1' : 'Comando atual';
+            commandText.innerText = toggleStateX ? 'Comando atual: Articulação 1' : 'Comando atual: Base (Rotação)';
         });
 
         yButton.addEventListener('click', () => {
@@ -175,7 +174,7 @@
             crossUp.classList.toggle('disabled', toggleStateY);
             crossDown.classList.toggle('disabled', toggleStateY);
             // Mandar comando atual para commandText
-            commandText.innerText = toggleStateY ? 'Comando atual: Rotacionar Pulso' : 'Comando atual';
+            commandText.innerText = toggleStateY ? 'Comando atual: Rotacionar Pulso' : 'Comando atual: Base (Rotação)';
         });
 
 
@@ -198,7 +197,7 @@
         // Função para enviar dados do direcional
         function sendCrossData(direction) {
             if (toggleStateL2) { // Verifica se o toggleState está ativo
-                // Desativa rotação da base quando L1 (base) está ativo (TODO: Testar melhor quando base for implementada)
+                // Desativa rotação da base quando L1 (base) está ativo
                 if (toggleStateL1 && (direction === 'crossLeft' || direction === 'crossRight')) {
                     return;
                 }
@@ -210,6 +209,7 @@
                 if (toggleStateB && (direction === 'crossUp' || direction === 'crossDown')) {
                     const action = direction === 'crossUp' ? 'UpArt3' : 'DownArt3';
                     socket.emit('crossData', { direction: action });
+                    return; // Adiciona um return aqui para evitar o envio de crossUp/crossDown
                 }
                 // Desativa os botões quando Y (pulso) está ativo
                 if (toggleStateY && (direction === 'crossUp' || direction === 'crossDown')) {
@@ -219,6 +219,7 @@
                 if (toggleStateY && (direction === 'crossLeft' || direction === 'crossRight')) {
                     const action = direction === 'crossLeft' ? 'LeftPulso' : 'RightPulso';
                     socket.emit('crossData', { direction: action });
+                    return; // Adiciona um return aqui para evitar o envio de crossLeft/crossRight
                 }
                 // Desativa os botões quando G (garra) está ativo
                 if (toggleStateG && (direction === 'crossLeft' || direction === 'crossRight')) {
@@ -228,6 +229,7 @@
                 if (toggleStateG && (direction === 'crossUp' || direction === 'crossDown')) {
                     const action = direction === 'crossUp' ? 'UpArt2' : 'DownArt2';
                     socket.emit('crossData', { direction: action });
+                    return; // Adiciona um return aqui para evitar o envio de crossUp/crossDown
                 }
                 // Desativa os botões quando X (art1) está ativo
                 if (toggleStateX && (direction === 'crossLeft' || direction === 'crossRight')) {
@@ -237,15 +239,14 @@
                 if (toggleStateX && (direction === 'crossUp' || direction === 'crossDown')) {
                     const action = direction === 'crossUp' ? 'UpArt1' : 'DownArt1';
                     socket.emit('crossData', { direction: action });
+                    return; // Adiciona um return aqui para evitar o envio de crossUp/crossDown
                 }
 
-                else {
-                    // Muda os valores de crossLeft e crossRight para LeftBase e RightBase quando L2 (base) está ativo
-
-                    socket.emit('crossData', { direction: direction });
-                }
+                // Se nenhum dos toggles específicos estiver ativo, envia a direção original
+                socket.emit('crossData', { direction: direction });
             }
         }
+
 
 
 
