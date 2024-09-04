@@ -4,6 +4,7 @@ body {
     font-family: 'Handjet', sans-serif;
     font-weight: 500;
     font-size: 30px;
+    overflow-y: hidden;
 }
 
 * {
@@ -114,6 +115,43 @@ body {
     margin-left: 30px;
 }
 
+/*Centro*/
+.center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    margin: 0 60px;
+}
+
+.command-text {
+    margin-bottom: 10px;
+}
+
+.home-button {
+    background-color: #484848;
+    width: 45px;
+    height: 45px;
+    border-radius: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    margin-top: 10px;
+}
+
+.home-button-clicked {
+    background-color: #181818;
+    transition: 0.1s;
+}
+
+.home-button svg {
+    width: 30px;
+    height: 30px;
+    fill: #fff;
+}
+
+/*Esquerda*/
 .ButtonsCenter {
     margin-left: 15px;
     display: flex;
