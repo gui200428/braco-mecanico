@@ -27,12 +27,12 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 bool garraState = false; // False: ANGLE_A1, True: ANGLE_A2
 // Variável para armazenar o estado atual da articulação 3
 int art3AnguloInicial = 170;
-// Controle de graus de movimento das articulações
+// Controla de graus de movimento das articulações
 // MovesSteps
-int moveStepArt1 = 5;
-int moveStepArt2 = 5;
+int moveStepArt1 = 30;
+int moveStepArt2 = 10;
 int moveStepArt3 = 5;
-int moveStepBase = 5;
+int moveStepBase = 30;
 // Variável para armazenar o estado atual do pulso
 int pulsoInicial = 90;
 // Variável para armazenar o estado atual da articulação 2
@@ -59,14 +59,14 @@ void loop()
     command.trim();                                // Remove espaços em branco no início e no final da string
 
     // Botão Home - Retorna todos os servos para a posição inicial
-    if (command == "BUTTON_HOME")
+    if (command == "BUTTON_HOME-BUTTON")
     {
       // Retorna a base para a posição inicial
       for (int angle = baseInicial; angle >= 60; angle--)
       {
         int pulselength = map(angle, 0, 180, SERVOMIN, SERVOMAX);
         pwm.setPWM(base, 0, pulselength);
-        delay(15); // Ajusta o delay para controlar a velocidade (maior delay = mais lento)
+        delay(25); // Ajusta o delay para controlar a velocidade (maior delay = mais lento)
       }
       baseInicial = 60; // Atualiza a posição inicial
       Serial.print("Movendo base para: ");
@@ -79,7 +79,7 @@ void loop()
         int pulselength = map(angle, 0, 180, 205, 409);
         pwm.setPWM(art1Esq, 0, pulselength);
         pwm.setPWM(art1Dir, 0, pulselength);
-        delay(15); // Ajusta o delay para controlar a velocidade (maior delay = mais lento)
+        delay(25); // Ajusta o delay para controlar a velocidade (maior delay = mais lento)
       }
       art1AnguloInicial = 80; // Atualiza a posição inicial
       Serial.print("Movendo art1 para: ");
@@ -91,7 +91,7 @@ void loop()
       {
         int pulselength = map(angle, 0, 180, SERVOMIN, SERVOMAX);
         pwm.setPWM(art2, 0, pulselength);
-        delay(15); // Ajusta o delay para controlar a velocidade (maior delay = mais lento)
+        delay(25); // Ajusta o delay para controlar a velocidade (maior delay = mais lento)
       }
       art2AnguloInicial = 0; // Atualiza a posição inicial
       Serial.print("Movendo art2 para: ");
@@ -103,7 +103,7 @@ void loop()
       {
         int pulselength = map(angle, 0, 180, SERVOMIN, SERVOMAX);
         pwm.setPWM(art3, 0, pulselength);
-        delay(15); // Ajusta o delay para controlar a velocidade (maior delay = mais lento)
+        delay(25); // Ajusta o delay para controlar a velocidade (maior delay = mais lento)
       }
       art3AnguloInicial = 170; // Atualiza a posição inicial
       Serial.print("Movendo art3 para: ");
@@ -115,7 +115,7 @@ void loop()
       {
         int pulselength = map(angle, 0, 180, SERVOMIN, SERVOMAX);
         pwm.setPWM(pulso, 0, pulselength);
-        delay(15); // Ajusta o delay para controlar a velocidade (maior delay = mais lento)
+        delay(25); // Ajusta o delay para controlar a velocidade (maior delay = mais lento)
       }
       pulsoInicial = 90; // Atualiza a posição inicial
       Serial.print("Movendo pulso para: ");
