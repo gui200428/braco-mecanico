@@ -52,6 +52,7 @@
         let toggleState = false; // Estado inicial do toggle, false significa enviar alpha, beta, gamma
         let toggleStateL1 = false; // True significa não enviar crossleft e crossright
         let toggleStateB = false;  // True significa B está ativo, desabilitar crossleft e crossright
+        let toggleStateY = false;  // True significa Y está ativo, desabilitar crossup e crossdown
 
         // Botões do controle
         const l1Button = document.getElementById('L1');
@@ -122,27 +123,63 @@
             crossRight.classList.toggle('disabled', toggleStateB);
         });
 
+        yButton.addEventListener('click', () => {
+            toggleStateY = !toggleStateY;
+            yButton.style.backgroundColor = toggleStateY ? '#77DD77' : '#484848';
+            crossUp.classList.toggle('disabled', toggleStateY);
+            crossDown.classList.toggle('disabled', toggleStateY);
+        });
+
+
+        // Controle A B X Y
+        function sendButtonData(button) {
+            if (button === 'b') {
+                return;
+            }
+            if (button === 'y') {
+                return;
+            }
+            else {
+                socket.emit('buttonData', { button });
+            }
+        }
+
         // Controle cruz
 
 
         // Função para enviar dados do direcional
         function sendCrossData(direction) {
             if (toggleState) { // Verifica se o toggleState está ativo
+                // Desativa rotação da base quando L1 (base) está ativo (TODO: Testar melhor quando base for implementada)
                 if (toggleStateL1 && (direction === 'crossLeft' || direction === 'crossRight')) {
-                    return; // Não envia se for crossLeft ou crossRight e toggleStateL1 for true
+                    return;
                 }
+                // Desativa os botões quando B (art3) está ativo
                 if (toggleStateB && (direction === 'crossLeft' || direction === 'crossRight')) {
-                    return; // Não envia se for crossLeft ou crossRight e toggleStateB for true
+                    return;
                 }
+                // Muda a direção para UpArt3 ou DownArt3 quando B (art3) está ativo
                 if (toggleStateB && (direction === 'crossUp' || direction === 'crossDown')) {
                     const action = direction === 'crossUp' ? 'UpArt3' : 'DownArt3';
                     socket.emit('crossData', { direction: action });
                 }
+                // Desativa os botões quando Y (pulso) está ativo
+                if (toggleStateY && (direction === 'crossUp' || direction === 'crossDown')) {
+                    return; // Não envia se for crossUp ou crossDown e toggleStateY for true
+                }
+                // Muda a direção para LeftPulso ou RightPulso quando Y (pulso) está ativo
+                if (toggleStateY && (direction === 'crossLeft' || direction === 'crossRight')) {
+                    const action = direction === 'crossLeft' ? 'LeftPulso' : 'RightPulso';
+                    socket.emit('crossData', { direction: action });
+                }
+
                 else {
                     socket.emit('crossData', { direction: direction });
                 }
             }
         }
+
+
 
         // Eventos de clique para botões de direção
         const crossSides = document.querySelectorAll('.crossCenter > div');
@@ -173,15 +210,6 @@
             });
         });
 
-        // Função para enviar os botões X, Y, B, A para o servidor
-        function sendButtonData(button) {
-            if (button === 'b') {
-                return;
-            }
-            else {
-                socket.emit('buttonData', { button });
-            }
-        }
 
         // Eventos de clique para botões X, Y, B, A
         [xButton, yButton, bButton, aButton].forEach(button => {

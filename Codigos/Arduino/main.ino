@@ -26,9 +26,11 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 // Variável para armazenar o estado atual da garra
 bool garraState = false;  // False: ANGLE_A1, True: ANGLE_A2
 // Variável para armazenar o estado atual da articulação 3
-int art3AnguloInicial = 90;
+int art3AnguloInicial = 170;
 // Controle de graus de movimento das articulações
 int moveStep = 10;
+// Variável para armazenar o estado atual do pulso
+int pulsoInicial = 90;
 
 
 void setup() {
@@ -44,8 +46,40 @@ void loop() {
     String command = Serial.readStringUntil('\n');  // Lê o comando da porta serial
     command.trim();  // Remove espaços em branco no início e no final da string
 
+    // Controle Left e Right - Pulso
+    if (command == "RightPulso") {
+      if (pulsoInicial <= 90) { // Limita o incremento para não ultrapassar 180 graus
+        int targetAngle = pulsoInicial + 90; // Define o ângulo alvo
+        for (int angle = pulsoInicial; angle <= targetAngle; angle++) {
+          int pulselength = map(angle, 0, 180, SERVOMIN, SERVOMAX);
+          pwm.setPWM(pulso, 0, pulselength);
+          delay(15); // Ajusta o delay para controlar a velocidade do movimento (maior delay = mais lento)
+        }
+        pulsoInicial = targetAngle; // Atualiza a posição inicial
+        Serial.print("Movendo pulso para: ");
+        Serial.print(pulsoInicial);
+        Serial.println(" graus");
+      }
+    }
+
+    if (command == "LeftPulso") {
+      if (pulsoInicial >= 90) { // Limita o decremento para não ultrapassar 0 graus
+        int targetAngle = pulsoInicial - 90; // Define o ângulo alvo
+        for (int angle = pulsoInicial; angle >= targetAngle; angle--) {
+          int pulselength = map(angle, 0, 180, SERVOMIN, SERVOMAX);
+          pwm.setPWM(pulso, 0, pulselength);
+          delay(15); // Ajusta o delay para controlar a velocidade do movimento (maior delay = mais lento)
+        }
+        pulsoInicial = targetAngle; // Atualiza a posição inicial
+        Serial.print("Movendo pulso para: ");
+        Serial.print(pulsoInicial);
+        Serial.println(" graus");
+      }
+    }
+
+
     // Controle Up e Down - Articulação 3
-    if (command == "UpArt3"){
+    if (command == "DownArt3"){
       if (art3AnguloInicial + moveStep <= 170){
         art3AnguloInicial += moveStep;
         int pulselength = map(art3AnguloInicial, 0, 180, SERVOMIN, SERVOMAX);
@@ -56,7 +90,7 @@ void loop() {
         delay(10);
       }
     }
-    if (command == "DownArt3"){
+    if (command == "UpArt3"){
       if (art3AnguloInicial - moveStep >= 0){
         art3AnguloInicial -= moveStep;
         int pulselength = map(art3AnguloInicial, 0, 180, SERVOMIN, SERVOMAX);
