@@ -1,0 +1,7 @@
+L2 - Troca a rotação da base entre acelerometro e direcionais
+L1 - Trava a rotação da baase
+Y - Rotação do pulso
+B - Controle da articulação 3
+G - Controle da articulação 2
+X - Controle da articulação 1
+A - Abre e fecha a garra

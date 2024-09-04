@@ -26,15 +26,20 @@
             </div>
         </div>
         <div class="right">
-            <div class="triggers">
+            <div class="triggers" id="triggersRight">
                 <div class="triggerR2">R2</div>
                 <div class="triggerR1">R1</div>
             </div>
             <div class="ButtonsCenter">
-                <div class="x">X</div>
-                <div class="b">B</div>
-                <div class="y">Y</div>
-                <div class="a">A</div>
+                <div class="button-row">
+                    <div class="x">X</div>
+                    <div class="y">Y</div>
+                    <div class="b">B</div>
+                </div>
+                <div class="button-row">
+                    <div class="a">A</div>
+                    <div class="g">G</div>
+                </div>
             </div>
         </div>
     </div>
@@ -49,10 +54,12 @@
         let gamma = 0;
 
         // Toggles
-        let toggleState = false; // Estado inicial do toggle, false significa enviar alpha, beta, gamma
+        let toggleStateL2 = false; // Estado inicial do toggle, false significa enviar alpha, beta, gamma
         let toggleStateL1 = false; // True significa não enviar crossleft e crossright
         let toggleStateB = false;  // True significa B está ativo, desabilitar crossleft e crossright
         let toggleStateY = false;  // True significa Y está ativo, desabilitar crossup e crossdown
+        let toggleStateG = false;  // True significa G está ativo, desabilitar crossleft e crossright
+        let toggleStateX = false;  // True significa X está ativo, desabilitar crossleft e crossright
 
         // Botões do controle
         const l1Button = document.getElementById('L1');
@@ -67,6 +74,7 @@
         const yButton = document.querySelector('.y');
         const bButton = document.querySelector('.b');
         const aButton = document.querySelector('.a');
+        const gButton = document.querySelector('.g');
 
         // Verificação de suporte ao DeviceOrientationEvent
         if (window.DeviceOrientationEvent) {
@@ -78,7 +86,7 @@
 
         // Função para tratar eventos de orientação
         function handleOrientationEvent(event) {
-            if (!toggleState) {
+            if (!toggleStateL2) {
                 const orientationData = {
                     alpha: Math.round(event.alpha),
                     beta: Math.round(event.beta),
@@ -98,8 +106,8 @@
 
         // Eventos para alternar estados
         l2Button.addEventListener('click', () => {
-            toggleState = !toggleState;
-            l2Button.style.backgroundColor = toggleState ? 'red' : '#484848';
+            toggleStateL2 = !toggleStateL2;
+            l2Button.style.backgroundColor = toggleStateL2 ? 'red' : '#484848';
         });
 
         l1Button.addEventListener('click', () => {
@@ -110,7 +118,7 @@
 
         // Função para enviar os dados do botão L1
         l1Button.addEventListener('mousedown', function () {
-            if (toggleState) {
+            if (toggleStateL2) {
                 socket.emit('buttonData', { button: 'L1' });
             }
         });
@@ -128,6 +136,20 @@
             yButton.style.backgroundColor = toggleStateY ? '#77DD77' : '#484848';
             crossUp.classList.toggle('disabled', toggleStateY);
             crossDown.classList.toggle('disabled', toggleStateY);
+        });
+
+        gButton.addEventListener('click', () => {
+            toggleStateG = !toggleStateG;
+            gButton.style.backgroundColor = toggleStateG ? '#9370DB' : '#484848';
+            crossLeft.classList.toggle('disabled', toggleStateG);
+            crossRight.classList.toggle('disabled', toggleStateG);
+        });
+
+        xButton.addEventListener('click', () => {
+            toggleStateX = !toggleStateX;
+            xButton.style.backgroundColor = toggleStateX ? '#FFA07A' : '#484848';
+            crossLeft.classList.toggle('disabled', toggleStateX);
+            crossRight.classList.toggle('disabled', toggleStateX);
         });
 
 
@@ -149,7 +171,7 @@
 
         // Função para enviar dados do direcional
         function sendCrossData(direction) {
-            if (toggleState) { // Verifica se o toggleState está ativo
+            if (toggleStateL2) { // Verifica se o toggleState está ativo
                 // Desativa rotação da base quando L1 (base) está ativo (TODO: Testar melhor quando base for implementada)
                 if (toggleStateL1 && (direction === 'crossLeft' || direction === 'crossRight')) {
                     return;
@@ -172,8 +194,28 @@
                     const action = direction === 'crossLeft' ? 'LeftPulso' : 'RightPulso';
                     socket.emit('crossData', { direction: action });
                 }
+                // Desativa os botões quando G (garra) está ativo
+                if (toggleStateG && (direction === 'crossLeft' || direction === 'crossRight')) {
+                    return; // Não envia se for crossLeft ou crossRight e toggleStateG for true
+                }
+                // Muda a direção para UpArt2 ou DownArt2 quando G (art2) está ativo
+                if (toggleStateG && (direction === 'crossUp' || direction === 'crossDown')) {
+                    const action = direction === 'crossUp' ? 'UpArt2' : 'DownArt2';
+                    socket.emit('crossData', { direction: action });
+                }
+                // Desativa os botões quando X (art1) está ativo
+                if (toggleStateX && (direction === 'crossLeft' || direction === 'crossRight')) {
+                    return; // Não envia se for crossLeft ou crossRight e toggleStateX for true
+                }
+                // Muda a direção para UpArt1 ou DownArt1 quando X (art1) está ativo
+                if (toggleStateX && (direction === 'crossUp' || direction === 'crossDown')) {
+                    const action = direction === 'crossUp' ? 'UpArt1' : 'DownArt1';
+                    socket.emit('crossData', { direction: action });
+                }
 
                 else {
+                    // Muda os valores de crossLeft e crossRight para LeftBase e RightBase quando L2 (base) está ativo
+
                     socket.emit('crossData', { direction: direction });
                 }
             }
@@ -185,7 +227,7 @@
         const crossSides = document.querySelectorAll('.crossCenter > div');
         crossSides.forEach(side => {
             side.addEventListener('mousedown', function () {
-                if (toggleState) {
+                if (toggleStateL2) {
                     sendCrossData(this.id);
                     crossSides.forEach(el => el.classList.remove('cross-clicked'));
                     this.classList.add('cross-clicked');
@@ -211,8 +253,8 @@
         });
 
 
-        // Eventos de clique para botões X, Y, B, A
-        [xButton, yButton, bButton, aButton].forEach(button => {
+        // Eventos de clique para botões X, Y, B, A, G
+        [xButton, yButton, bButton, aButton, gButton].forEach(button => {
             button.addEventListener('mousedown', function () {
                 button.classList.add(`${button.classList[0]}-clicked`);
                 sendButtonData(button.classList[0]);

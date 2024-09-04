@@ -32,6 +32,16 @@ body {
     width: 100%;
 }
 
+#triggersRight {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.left {
+    padding-left: 60px;
+}
+
 .triggerL1,
 .triggerL2,
 .triggerR1,
@@ -88,17 +98,6 @@ body {
     margin-left: 5px;
 }
 
-.x,
-.b,
-.y,
-.a {
-    background-color: #484848;
-    width: 45px;
-    height: 45px;
-    position: absolute;
-    border-radius: 100%;
-}
-
 .crossUp {
     margin-top: -30px;
 }
@@ -117,32 +116,41 @@ body {
 
 .ButtonsCenter {
     margin-left: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
+
+.button-row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
 
 .x,
 .b,
 .y,
-.a {
+.a,
+.g {
+    background-color: #484848;
+    width: 45px;
+    height: 45px;
+    border-radius: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
     color: #fff;
+    margin: 0 10px;
 }
 
-.x {
-    margin-top: -40px;
-}
-
-.b {
-    margin-top: 40px;
-}
-
-.y {
-    margin-left: -40px;
-}
-
+/* Remova as posições absolutas dos botões */
+.x,
+.b,
+.y,
 .a {
-    margin-left: 40px;
+    position: static;
+    margin: 0 10px;
 }
 
 
@@ -173,6 +181,12 @@ body {
 
 .a-clicked {
     background-color: #FF6961;
+    transition: 0.1s;
+}
+
+.g-clicked {
+    background-color: #9370DB;
+    /* Cor roxa para o botão G quando clicado */
     transition: 0.1s;
 }
 
